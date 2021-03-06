@@ -55,8 +55,12 @@ class ProxyChecker():
                 self.proxyList.remove(proxy)
         
 
+    def get_test_proxies(self):
+      return self.testProxies
+
+    
     def get_proxies(self):
-      return self.proxyList
+        return self.proxyList
 
 
     def clean_dupe_origin_proxies(self):
