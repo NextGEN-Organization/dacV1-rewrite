@@ -1,2 +1,5 @@
 package/
 classes/__pycache__/
+chromedriver
+chromedriver.exe
+config/proxies.txt

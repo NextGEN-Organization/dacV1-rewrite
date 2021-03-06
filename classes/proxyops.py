@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+import requests
 from aiohttp_socks import ProxyType, ProxyConnector, ChainProxyConnector
 from .baseoperations import BaseOperations
 from proxyscrape import create_collector
@@ -15,12 +16,18 @@ class ProxyScraper():
     def __init__(self, proxyType):
         self.proxyType = proxyType
 
-    def auto_scrape(self):
+    def proxyscrape_scrape(self):
         collector = create_collector('my-collector', self.proxyType)
         uniqlines = set(("{}:{}".format(proxy[0], proxy[1]) for proxy in collector.get_proxies({'anonymous': True})))
         return uniqlines
 
-    
+
+    def spys_proxy_scrape(self):
+        if (self.proxyType in ['http', 'https']):
+            response = requests.get("https://spys.me/proxy.txt")
+            proxies = response.content.decode("UTF-8").split("\n")[9:-2]
+            return [proxy.split(' ')[0] for proxy in proxies if 'H' or 'A' in proxy.split(' ')[1].split('-')[1]]
+        return []
 
 
 class ProxyChecker():
@@ -39,9 +46,9 @@ class ProxyChecker():
         self.loop.run_until_complete(asyncio.gather(*tasks))
 
 
-    def load_proxies_from_file(self):
+    def load_proxies_from_file(self, filepath):
         self.testProxies = []
-        with open("config/proxies.txt", "r") as fd:
+        with open(filepath, "r") as fd:
             for line in fd.readlines():
                 line = line.strip("\n")
                 if not line:
@@ -61,6 +68,12 @@ class ProxyChecker():
     
     def get_proxies(self):
         return self.proxyList
+
+    def set_test_proxies(self, proxyList):
+        self.testProxies = testProxies
+
+    def set_proxies(self, proxyList):
+        self.proxyList = proxyList
 
 
     def clean_dupe_origin_proxies(self):
