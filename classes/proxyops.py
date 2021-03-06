@@ -35,11 +35,6 @@ class ProxyChecker():
 
 
     async def begin_checking(self):
-        # for worker in range(self.workers):
-        #     start = int(len(self.testProxies) / self.workers) * worker
-        #     end = int(len(self.testProxies) / self.workers) * (worker + 1)
-        # tasks = (self.check_proxy(proxy, self.proxyType) for proxy in list(self.testProxies)[start:end])
-        
         tasks = (self.check_proxy(proxy, self.proxyType) for proxy in self.testProxies)
         self.loop.run_until_complete(asyncio.gather(*tasks))
 

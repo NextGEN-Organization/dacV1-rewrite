@@ -9,12 +9,16 @@ async def main():
     loop = asyncio.get_event_loop()
     ps = ProxyScraper("https")
     proxies = ps.auto_scrape()
+
     pc = ProxyChecker(proxyType="http", proxies=proxies)
     asyncio.run(pc.begin_checking())
     pc.proxy_cleaner()
-    proxies = pc.clean_dupe_origin_proxies()
-    pc.write_to_file(proxies, "config/proxies.txt")
-    pprint(proxies)
+    checked = pc.clean_dupe_origin_proxies()
+    pc.write_to_file(checked, "config/proxies.txt")
+    pprint(checked)
+    print("Total seconds taken: {}".format(round((datetime.now() - start).total_seconds(), 2)))
+    print("Checked {} proxies.".format(len(proxies)))
+    print("There were {} usable proxies.".format(len(checked)))
 
 
 
