@@ -9,7 +9,7 @@ async def main():
     loop = asyncio.get_event_loop()
     ps = ProxyScraper("https")
     proxies = ps.auto_scrape()
-    pc = ProxyChecker("http", proxies)
+    pc = ProxyChecker(proxyType="http", proxies=proxies)
     asyncio.run(pc.begin_checking())
     pc.proxy_cleaner()
     proxies = pc.clean_dupe_origin_proxies()

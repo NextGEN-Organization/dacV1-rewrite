@@ -3,6 +3,7 @@ import asyncio
 from aiohttp_socks import ProxyType, ProxyConnector, ChainProxyConnector
 from .baseoperations import BaseOperations
 from proxyscrape import create_collector
+from concurrent.futures.thread import ThreadPoolExecutor
 
 import nest_asyncio
 nest_asyncio.apply()
@@ -23,16 +24,22 @@ class ProxyScraper():
 
 
 class ProxyChecker():
-    def __init__ (self, proxyType, testProxies=[], timeout=None):
+    def __init__ (self, proxyType, proxies=[], timeout=5):
         self.proxyType = proxyType
-        self.testProxies = testProxies
+        self.testProxies = proxies
         self.loop = asyncio.get_event_loop()
         self.proxyList = []
         self.del_proxylist = []
-        self.timeout = aiohttp.ClientTimeout(total=(timeout if timeout != None else 5))
+        self.timeout = aiohttp.ClientTimeout(total=timeout)
+
 
 
     async def begin_checking(self):
+        # for worker in range(self.workers):
+        #     start = int(len(self.testProxies) / self.workers) * worker
+        #     end = int(len(self.testProxies) / self.workers) * (worker + 1)
+        # tasks = (self.check_proxy(proxy, self.proxyType) for proxy in list(self.testProxies)[start:end])
+        
         tasks = (self.check_proxy(proxy, self.proxyType) for proxy in self.testProxies)
         self.loop.run_until_complete(asyncio.gather(*tasks))
 
