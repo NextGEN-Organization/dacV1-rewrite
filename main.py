@@ -8,20 +8,28 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import WebDriverException
 import random
 import time
+import proxies
+import threading
+from threading import Thread
+
+proxyType = "socks4"
+tokens = []
+workers = 0
 
 
-def browser():
+def browser(proxy):
+    global workers
 # uc.TARGET_VERSION = 78
     options = uc.ChromeOptions()
     ua = UserAgent()
     userAgent = ua.chrome
     #print(userAgent)
     options.add_argument(f'user-agent={userAgent}')
-    options.add_argument("--headless")
-    #options.add_argument("--proxy-server=socks5://" + str(proxy))
-    options.add_argument("--host-resolver-rules=\"MAP * ~NOTFOUND , EXCLUDE myproxy\"")
+    #options.add_argument("--headless")
+    options.add_argument("--proxy-server={}://{}".format(proxyType, proxy))
     #options.add_extension("./extensions/buster_chrome.crx")
     #options.add_extension("./extensions/xpather.crx")
     options.add_argument("--disable-blink-features=AutomationControlled")
@@ -56,8 +64,12 @@ def browser():
 
     url = "https://discord.com/register"
     #url = "https://accounts.google.com/signin/v2/identifier?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&hl=en&ec=65620&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
-    driver.get(url)
-    sleeptime = 0.6
+    try:
+        driver.get(url)
+    except WebDriverException:
+        driver.quit()
+
+    sleeptime = 0.4
     
     email = "testing1234crazytown{}@gmail.com".format(random.randint(0, 1000))
     username = "soaringhigh{}".format(random.randint(0, 1000))
@@ -69,43 +81,56 @@ def browser():
         wait = WebDriverWait(driver, 30)
 
         enter_searchbar = wait.until(EC.presence_of_element_located((By.NAME, "email")))
-        slow_typing(enter_searchbar, email, 30)
+        slow_typing(enter_searchbar, email, 20)
         time.sleep(sleeptime)
 
         enter_user = driver.find_element_by_name("username")
-        slow_typing(enter_user, username, 30)
+        slow_typing(enter_user, username, 20)
         time.sleep(sleeptime)
 
 
         enter_password = driver.find_element_by_name("password")
-        slow_typing(enter_password, password, 30)
+        slow_typing(enter_password, password, 20)
         time.sleep(sleeptime)
 
         enter_month = driver.find_element_by_id("react-select-2-input")
-        enter_month.send_keys(selection_month, Keys.ENTER)
+        slow_typing(enter_month, selection_month, 20)
+        enter_month.send_keys(Keys.ENTER)
         time.sleep(sleeptime)
 
         enter_day = driver.find_element_by_id("react-select-3-input")
-        enter_day.send_keys(selection_day, Keys.ENTER)
+        slow_typing(enter_day, selection_day, 20)
+        enter_day.send_keys(Keys.ENTER)
         time.sleep(sleeptime)
 
         enter_year = driver.find_element_by_id("react-select-4-input")
-        slow_typing(enter_year, random.randint(1988, 1997), 30)
+        slow_typing(enter_year, random.randint(1988, 1997), 20)
         enter_year.send_keys(Keys.ENTER)
         time.sleep(sleeptime)
 
-        driver.save_screenshot("register.png")
+
         try:
             driver.find_element_by_xpath("//input[@type='checkbox']").click()
         except:
             pass
         driver.find_element_by_xpath("//button[@type='submit']").click()
+        time.sleep(3)
+        driver.save_screenshot("images/register{}.png".format(workers))
     except Exception as e:
             print(e)
 
-    time.sleep(10)
+    for i in range(3):
+        try:
+            wait = WebDriverWait(driver, 10)
+            desired_url = "https://discord.com/channels/@me"
+            wait.until(lambda driver: driver.current_url == desired_url)
+            break
+        except:
+            pass
     driver.save_screenshot("check.png")
-    print(gettoken(driver))
+    time.sleep(5)
+    tokens.append(gettoken(driver))
+    workers -= 1
     driver.quit()
 
 
@@ -118,18 +143,48 @@ def gettoken(driver):
         "iframe.src = 'about:blank'; " \
         "document.body.appendChild(iframe); " \
         "return iframe.contentWindow.localStorage.getItem('token') ")
-
-    headers = headers.splitlines()
-    token = str(headers).lstrip("['\"").rstrip("\"']")
+    try:
+        headers = headers.splitlines()
+        token = str(headers).lstrip("['\"").rstrip("\"']")
+    except Exception as e:
+        token = None
     return token
 
 
 def slow_typing(element, string, timeout):
     for i in str(string):
-        sleepTime = random.randint(timeout-25, timeout+25)/1000
+        sleepTime = random.randint(timeout-15, timeout+15)/1000
         element.send_keys(i)
         time.sleep(sleepTime)
 
 
 
-browser()
+def write_to_output_file():
+    global tokens
+    while True:
+        if (len(tokens) == 0):
+            time.sleep(0.5)
+            continue
+        with open("config/tokens.txt", "a+") as results:
+            [results.write(token + "\n") for token in tokens if token != None]
+            tokens = []
+        
+
+
+def main():
+    global workers
+    proxyList = proxies.auto_check()
+    print(threading.active_count())
+    i = 0
+    Thread(target=write_to_output_file, daemon=True).start()
+    while True:
+        while workers < 3:
+                thread = Thread(target=browser, args=(proxyList[i],), daemon=True)
+                thread.start()
+                workers += 1
+                i += 1
+    time.sleep(100000)
+
+
+if __name__ == "__main__":
+    main()

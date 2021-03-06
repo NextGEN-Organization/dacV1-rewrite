@@ -4,7 +4,6 @@ import requests
 from aiohttp_socks import ProxyType, ProxyConnector, ChainProxyConnector
 from .baseoperations import BaseOperations
 from proxyscrape import create_collector
-from concurrent.futures.thread import ThreadPoolExecutor
 
 import nest_asyncio
 nest_asyncio.apply()
@@ -70,7 +69,7 @@ class ProxyChecker():
         return self.proxyList
 
     def set_test_proxies(self, proxyList):
-        self.testProxies = testProxies
+        self.testProxies = self.testProxies
 
     def set_proxies(self, proxyList):
         self.proxyList = proxyList

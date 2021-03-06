@@ -27,17 +27,17 @@ async def auto_scrape_and_check():
     print("There were {} usable proxies.".format(len(checked)))
 
 
-async def auto_check():
+def auto_check():
     start = datetime.now()
     loop = asyncio.get_event_loop()
 
-    pc = ProxyChecker(proxyType="http") #always put http if using http/https proxies. It works for both.
+    pc = ProxyChecker(proxyType="socks4", timeout=3) #always put http if using http/https proxies. It works for both.
     pc.load_proxies_from_file("config/proxies.txt")
 
     cleaned = pc.clean_dupe_origin_proxies()
     proxies = pc.get_test_proxies()
 
-    asyncio.run(pc.begin_checking())
+    loop.run_until_complete(pc.begin_checking())
     pc.proxy_cleaner()
 
     checked = pc.get_proxies()
@@ -47,9 +47,10 @@ async def auto_check():
     print("The proxy checking took {} seconds.".format(round((datetime.now() - start).total_seconds(), 2)))
     print("Checked {} proxies.".format(len(proxies)))
     print("There were {} usable proxies.".format(len(checked)))
+    return checked
 
 
 if __name__ == "__main__":
-    #asyncio.run(auto_check())
-    asyncio.run(auto_scrape_and_check())
+    auto_check()
+    #asyncio.run(auto_scrape_and_check())
 

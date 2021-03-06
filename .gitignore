@@ -1,6 +1,10 @@
 package/
 classes/__pycache__/
+config/tokens.txt
+
+*.png
+images/*.png
+
 chromedriver
 chromedriver.exe
-config/proxies.txt
-*.png
+
