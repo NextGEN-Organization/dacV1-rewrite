@@ -28,6 +28,10 @@ class ProxyScraper():
             return [proxy.split(' ')[0] for proxy in proxies if 'H' or 'A' in proxy.split(' ')[1].split('-')[1]]
         return []
 
+    def proxyscan_io_scrape(self):
+        response = requests.get("https://www.proxyscan.io/download?type={}".format(self.proxyType))
+        return [proxy.strip(' ') for proxy in response.content.decode("UTF-8").split("\n")[:-1]]
+
 
 class ProxyChecker():
     def __init__ (self, proxyType, proxies=[], timeout=5):

@@ -5,16 +5,15 @@ from pprint import pprint
 from datetime import datetime
 
 
-async def auto_scrape_and_check():
+def auto_scrape_and_check():
     start = datetime.now()
     loop = asyncio.get_event_loop()
 
-    ps = ProxyScraper("http")
+    ps = ProxyScraper("socks4")
     proxies = ps.proxyscrape_scrape()
-    proxies = list(proxies) + ps.spys_proxy_scrape()
-
-    pc = ProxyChecker(proxyType="http", proxies=proxies) #always put http if using http/https proxies. It works for both.
-    asyncio.run(pc.begin_checking())
+    proxies = list(proxies) + ps.spys_proxy_scrape() + ps.proxyscan_io_scrape()
+    pc = ProxyChecker(proxyType="socks4", proxies=proxies) #always put http if using http/https proxies. It works for both.
+    loop.run_until_complete(pc.begin_checking())
 
     pc.proxy_cleaner()
     checked = pc.clean_dupe_origin_proxies()
@@ -25,6 +24,7 @@ async def auto_scrape_and_check():
     print("The proxy checking took {} seconds.".format(round((datetime.now() - start).total_seconds(), 2)))
     print("Checked {} proxies.".format(len(proxies)))
     print("There were {} usable proxies.".format(len(checked)))
+    return checked
 
 
 def auto_check():
@@ -41,7 +41,7 @@ def auto_check():
     pc.proxy_cleaner()
 
     checked = pc.get_proxies()
-    pc.write_to_file(checked, "config/proxies.txt")
+    #pc.write_to_file(checked, "config/proxies.txt")
 
     pprint(checked)
     print("The proxy checking took {} seconds.".format(round((datetime.now() - start).total_seconds(), 2)))
