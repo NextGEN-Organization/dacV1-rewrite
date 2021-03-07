@@ -12,8 +12,10 @@ from selenium.common.exceptions import WebDriverException
 import random
 import time
 import proxies
+import accountinfo
 import threading
 from threading import Thread
+import asyncio
 
 proxyType = "socks4"
 tokens = []
@@ -31,21 +33,23 @@ def await_tab(driver):
             print("{}\n".format(token if token != None else "No token found."))
             driver.quit()
             break
-        except:
+        except Exception:
             pass
 
 
 def browser(proxy):
     global workers
+    # email = accountinfo.get_email()
+    # if not email:
+    #     workers -= 1
+    #     return
+        
     options = uc.ChromeOptions()
     ua = UserAgent()
     userAgent = ua.chrome
-    #print(userAgent)
     options.add_argument(f'user-agent={userAgent}')
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     options.add_argument("--proxy-server={}://{}".format(proxyType, proxy))
-    #options.add_extension("./extensions/buster_chrome.crx")
-    #options.add_extension("./extensions/xpather.crx")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
@@ -89,7 +93,7 @@ def browser(proxy):
         sleeptime = 0.4
         
         email = "testing1234crazytown{}@gmail.com".format(random.randint(0, 100000))
-        username = "soaringhigh{}".format(random.randint(0, 100000))
+        username = "Generel Schwerz #{}".format(random.randint(0, 100000))
         password = "birdhigh1234sky"
         selection_month = random.choice(['December', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November'])
         selection_day = random.randint(1, 28)
@@ -135,14 +139,11 @@ def browser(proxy):
                 WebDriverWait(driver, 30).until(EC.frame_to_be_available_and_switch_to_it((By.XPATH,'//iframe[contains(@title, "widget")]')))
                 WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div#checkbox.checkbox"))).click()
                 print("Found one!")
-                # wait.until(EC.element_to_be_clickable((By.ID, "recaptcha-anchor"))).click()
             except Exception:
                 print("failed to find iframe!")
                 workers -=1
                 driver.quit()
-            #time.sleep(3)
-
-            #driver.save_screenshot("images/register{}.png".format(workers))
+                return
 
         except Exception as e:
             print(e)
@@ -193,6 +194,7 @@ def write_to_output_file():
 
 def main():
     global workers
+    loop = asyncio.get_event_loop()
     proxyList = proxies.auto_scrape_and_check()
     print(threading.active_count())
     i = 0
