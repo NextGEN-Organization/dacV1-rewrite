@@ -1,2 +1,4 @@
-# proxy-checker
-Async proxy checker (and cheapass scraper that barely works. Thanks library),
+# DAC V1 Rewrite
+Selenium-based account creator.
+
+### ngl, this is way better than it should be. It's not even done yet.
